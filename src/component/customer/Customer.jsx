@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
     Paper,
@@ -13,14 +13,18 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Select,
     TablePagination,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers';
+import { getAllCities, getAllCountries } from '../../service/LocationService';
 
 export default function Customer() {
+    const [cities, setCities] = useState([]);
+    const [countries, setCountries] = useState([]);
     const [formData, setFormData] = useState({
         id: '',
         name: '',
@@ -59,10 +63,10 @@ export default function Customer() {
         }
     ]);
 
-    const [selectedDateTime, setSelectedDateTime] = useState(null);
-
-    const handleDateTimeChange = (newValue) => {
-        setSelectedDateTime(newValue);
+    // DatePicker for customer date of birth
+    const [selectedCusDateOfBirth, setSelectedCusDateOfBirth] = useState(null);
+    const handleCusDobChange = (newValue) => {
+        setSelectedCusDateOfBirth(newValue);
         console.log('Selected DateTime:', newValue?.format());
     };
 
@@ -93,6 +97,29 @@ export default function Customer() {
         console.log('Customer Data:', formData);
         // You can send this data to your backend here
     };
+
+    useEffect(() => {
+        handleGetAllCities();
+        handleGetAllCountries();
+    }, []);
+
+    const handleGetAllCities = async () => {
+        const data = await getAllCities();
+        if (data.data.status == 'OK') {
+            setCities(data.data.data);
+        } else {
+            console.error('Error fetching cities:', data.data.message);
+        }
+    }
+
+    const handleGetAllCountries = async () => {
+        const data = await getAllCountries();
+        if (data.data.status == 'OK') {
+            setCountries(data.data.data);
+        } else {
+            console.error('Error fetching countries:', data.data.message);
+        }
+    }
 
     return (
         <Paper
@@ -128,11 +155,9 @@ export default function Customer() {
                     required
                 />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DateTimePicker
+                    <DatePicker
                         fullWidth
                         label="Date of Birth"
-                        value={selectedDateTime}
-                        onChange={handleDateTimeChange}
                         slotProps={{ textField: { fullWidth: true, required: true, margin: 'normal' } }}
                         renderInput={(params) => <TextField {...params} />}
                         required
@@ -170,36 +195,36 @@ export default function Customer() {
                             margin="normal"
                             required
                         />
-                        <TextField
-                            select
-                            fullWidth
-                            label="City"
-                            name="cityId"
-                            value={address.cityId}
-                            margin="normal"
-                            required
-                        >
-                            {roles.map((role) => (
-                                <MenuItem key={role} value={role}>
-                                    {role}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Country"
+                        <Select
+                            labelId="country-label"
                             name="countryId"
-                            value={address.countryId}
-                            margin="normal"
-                            required
+                            fullWidth
+                            style={{ marginTop: '20px' }}
                         >
-                            {roles.map((role) => (
-                                <MenuItem key={role} value={role}>
-                                    {role}
+                            <MenuItem value="-1" key='0'>
+                                <em>Select a Country</em>
+                            </MenuItem>
+                            {countries.map((country) => (
+                                <MenuItem key={country.id} value={country.id}>
+                                    {country.countryName}
                                 </MenuItem>
                             ))}
-                        </TextField>
+                        </Select>
+                        <Select
+                            labelId="city-label"
+                            name="cityId"
+                            style={{ marginTop: '20px' }}
+                            fullWidth
+                        >
+                            <MenuItem value="-1" key='0'>
+                                <em>Select a City</em>
+                            </MenuItem>
+                            {cities.map((city) => (
+                                <MenuItem key={city.id} value={city.id}>
+                                    {city.cityName}
+                                </MenuItem>
+                            ))}
+                        </Select>
                     </Box>
                 ))}
 
@@ -244,11 +269,11 @@ export default function Customer() {
                             required
                         />
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DateTimePicker
+                            <DatePicker
                                 fullWidth
                                 label="Date of Birth"
-                                value={selectedDateTime}
-                                onChange={handleDateTimeChange}
+                                value={selectedCusDateOfBirth}
+                                onChange={handleCusDobChange}
                                 slotProps={{ textField: { fullWidth: true, required: true, margin: 'normal' } }}
                                 renderInput={(params) => <TextField {...params} />}
                                 required
