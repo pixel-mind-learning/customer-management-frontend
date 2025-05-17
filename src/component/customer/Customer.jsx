@@ -25,32 +25,85 @@ import { getAllCities, getAllCountries } from '../../service/LocationService';
 export default function Customer() {
     const [cities, setCities] = useState([]);
     const [countries, setCountries] = useState([]);
+
+    // DatePicker for customer date of birth
+    const [selectedCusDateOfBirth, setSelectedCusDateOfBirth] = useState(null);
+    const handleCusDobChange = (newValue) => {
+        setSelectedCusDateOfBirth(newValue);
+    };
+
     const [formData, setFormData] = useState({
         id: '',
         name: '',
-        dateOfBirth: dayjs(),
+        dateOfBirth: '',
         nic: '',
         customerHasAddressRequest: [],
         customerHasDependantRequest: [],
         customerHasMobileNumberRequest: [],
     });
+    useEffect(() => {
+        console.log('Form Data:', formData);
+    }, [formData]);
 
-    const [addresses, setAddresses] = useState([
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Adding customer addresses
+    const [cusAddressesFields, setCusAddressesFields] = useState([
         {
-            type: 'Home',
-            street: '123 Main St',
-            city: 'Colombo',
-            state: 'Western Province',
-            postalCode: '00100',
-            country: 'Sri Lanka'
+            id: 1,
         }
     ]);
+    const addCustomerAddressField = () => {
+        setCusAddressesFields([
+            ...cusAddressesFields,
+            {
+                id: cusAddressesFields.length + 1,
+            }
+        ]);
+    }
+    const [cusAddresses, setCusAddresses] = useState([{}]);
+    const handleCustomerAddressChange = (id, field, value) => {
+        const addressArrayIndex = id - 1
+        setCusAddresses((prevFields) => {
+            const updatedObjects = [...prevFields]
+            updatedObjects[addressArrayIndex] = {
+                ...updatedObjects[addressArrayIndex],
+                [field]: value,
+            }
+            return updatedObjects
+        })
+        console.log('Customer Address:', cusAddresses);
+    }
 
-    const [mobileNumers, setMobileNumbers] = useState([
+    // Adding customer contacts
+    const [cusContactsFields, setCusContactsFields] = useState([
         {
-            mobileNumer: '0770437288'
+            id: 1,
         }
     ]);
+    const addCustomerContactField = () => {
+        setCusContactsFields([
+            ...cusContactsFields,
+            {
+                id: cusContactsFields.length + 1,
+            }
+        ]);
+    }
+    const [mobileNumers, setMobileNumbers] = useState([{}]);
+    const handleCustomerContactChange = (id, field, value) => {
+        const contactArrayIndex = id - 1
+        setMobileNumbers((prevFields) => {
+            const updatedObjects = [...prevFields]
+            updatedObjects[contactArrayIndex] = {
+                ...updatedObjects[contactArrayIndex],
+                [field]: value,
+            }
+            return updatedObjects
+        })
+        console.log('Customer Contact:', mobileNumers);
+    }
 
     const [dependants, setDependants] = useState([
         {
@@ -62,13 +115,6 @@ export default function Customer() {
             customerHasMobileNumberRequest: [],
         }
     ]);
-
-    // DatePicker for customer date of birth
-    const [selectedCusDateOfBirth, setSelectedCusDateOfBirth] = useState(null);
-    const handleCusDobChange = (newValue) => {
-        setSelectedCusDateOfBirth(newValue);
-        console.log('Selected DateTime:', newValue?.format());
-    };
 
     const roles = ['Admin', 'Customer', 'Manager'];
     const [page, setPage] = React.useState(0);
@@ -86,11 +132,6 @@ export default function Customer() {
         { id: 1, name: 'Alice', email: 'alice@example.com', role: 'Admin' },
         { id: 2, name: 'Bob', email: 'bob@example.com', role: 'Customer' },
     ]);
-
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -154,19 +195,23 @@ export default function Customer() {
                     margin="normal"
                     required
                 />
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                        fullWidth
-                        label="Date of Birth"
-                        slotProps={{ textField: { fullWidth: true, required: true, margin: 'normal' } }}
-                        renderInput={(params) => <TextField {...params} />}
-                        required
-                    />
-                </LocalizationProvider>
+                <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    name="dateOfBirth"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    margin="normal"
+                    required
+                />
                 <TextField
                     fullWidth
                     label="NIC"
-                    name="NIC"
+                    name="nic"
                     value={formData.nic}
                     onChange={handleChange}
                     margin="normal"
@@ -176,29 +221,36 @@ export default function Customer() {
                 {/* Customer Location info form started */}
                 <Typography variant="h6" sx={{ mt: 3 }}>Customer Location Info.</Typography>
 
-                {addresses.map((address, index) => (
+                {cusAddressesFields.map((field, index) => (
                     <Box key={index} sx={{ border: '1px solid #ddd', borderRadius: 2, p: 2, mt: 2 }}>
                         <Typography variant="subtitle1">Location {index + 1}</Typography>
                         <TextField
                             fullWidth
                             label="Address Line 1"
                             name="addressLine1"
-                            value={address.addressLine1}
                             margin="normal"
+                            onChange={(e) => {
+                                handleCustomerAddressChange(field.id, 'addressLine1', e.target.value)
+                            }}
                             required
                         />
                         <TextField
                             fullWidth
                             label="Address Line 2"
                             name="addressLine2"
-                            value={address.addressLine2}
                             margin="normal"
+                            onChange={(e) => {
+                                handleCustomerAddressChange(field.id, 'addressLine2', e.target.value)
+                            }}
                             required
                         />
                         <Select
                             labelId="country-label"
                             name="countryId"
                             fullWidth
+                            onChange={(e) => {
+                                handleCustomerAddressChange(field.id, 'countryId', e.target.value)
+                            }}
                             style={{ marginTop: '20px' }}
                         >
                             <MenuItem value="-1" key='0'>
@@ -213,8 +265,11 @@ export default function Customer() {
                         <Select
                             labelId="city-label"
                             name="cityId"
-                            style={{ marginTop: '20px' }}
                             fullWidth
+                            onChange={(e) => {
+                                handleCustomerAddressChange(field.id, 'cityId', e.target.value)
+                            }}
+                            style={{ marginTop: '20px' }}
                         >
                             <MenuItem value="-1" key='0'>
                                 <em>Select a City</em>
@@ -228,28 +283,30 @@ export default function Customer() {
                     </Box>
                 ))}
 
-                <Button sx={{ mt: 2 }} variant="outlined">
+                <Button sx={{ mt: 2 }} variant="outlined" onClick={() => addCustomerAddressField()}>
                     Add Another Address
                 </Button>
 
                 {/* Contact info form started */}
                 <Typography variant="h6" sx={{ mt: 3 }}>Customer Contact Info.</Typography>
 
-                {mobileNumers.map((mobileNo, index) => (
+                {cusContactsFields.map((field, index) => (
                     <Box key={index} sx={{ border: '1px solid #ddd', borderRadius: 2, p: 2, mt: 2 }}>
                         <Typography variant="subtitle1">Contact {index + 1}</Typography>
                         <TextField
                             fullWidth
                             label="Mobile No"
                             name="mobileNumber"
-                            value={mobileNo.mobileNumer}
                             margin="normal"
+                            onChange={(e) => {
+                                handleCustomerContactChange(field.id, 'mobileNumber', e.target.value)
+                            }}
                             required
                         />
                     </Box>
                 ))}
 
-                <Button sx={{ mt: 2 }} variant="outlined">
+                <Button sx={{ mt: 2 }} variant="outlined" onClick={() => addCustomerContactField()}>
                     Add Another Contact
                 </Button>
                 {/* Customer Location info form ended */}
@@ -292,14 +349,13 @@ export default function Customer() {
                         {/* Dependant Location info form started */}
                         <Typography variant="h6" sx={{ mt: 3 }}>Dependant Location Info.</Typography>
 
-                        {addresses.map((address, index) => (
+                        {cusAddresses.map((address, index) => (
                             <Box key={index} sx={{ border: '1px solid #ddd', borderRadius: 2, p: 2, mt: 2 }}>
                                 <Typography variant="subtitle1">Location {index + 1}</Typography>
                                 <TextField
                                     fullWidth
                                     label="Address Line 1"
                                     name="addressLine1"
-                                    value={address.addressLine1}
                                     margin="normal"
                                     required
                                 />
@@ -307,7 +363,6 @@ export default function Customer() {
                                     fullWidth
                                     label="Address Line 2"
                                     name="addressLine2"
-                                    value={address.addressLine2}
                                     margin="normal"
                                     required
                                 />
@@ -316,7 +371,6 @@ export default function Customer() {
                                     fullWidth
                                     label="City"
                                     name="cityId"
-                                    value={address.cityId}
                                     margin="normal"
                                     required
                                 >
@@ -331,7 +385,6 @@ export default function Customer() {
                                     fullWidth
                                     label="Country"
                                     name="countryId"
-                                    value={address.countryId}
                                     margin="normal"
                                     required
                                 >
