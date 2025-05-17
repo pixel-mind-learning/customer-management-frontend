@@ -20,7 +20,6 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
-
 export default function Customer() {
     const [formData, setFormData] = useState({
         id: '',
@@ -109,7 +108,6 @@ export default function Customer() {
                         renderInput={(params) => <TextField {...params} />}
                     />
                 </LocalizationProvider>
-
                 <TextField
                     fullWidth
                     label="Password"
